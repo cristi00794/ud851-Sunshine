@@ -108,7 +108,7 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapterOn
 
         // COMPLETED (7) Remove the code for the AsyncTask and initialize the AsyncTaskLoader
         /* Once all of our views are setup, we can load the weather data. */
-        loadWeatherData();
+        getSupportLoaderManager().initLoader(WEATHER_LOADER, null, this);
     }
 
     /**
@@ -117,19 +117,8 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapterOn
      */
     private void loadWeatherData() {
         showWeatherDataView();
+        getSupportLoaderManager().restartLoader(WEATHER_LOADER, null, this);
 
-        Bundle queryBundle = new Bundle();
-        queryBundle.putString(LOCATION_QUERY, SunshinePreferences.getPreferredWeatherLocation(this));
-
-        android.support.v4.app.LoaderManager loaderManager = getSupportLoaderManager();
-//        loaderManager.restartLoader(WEATHER_LOADER, queryBundle, this);
-
-        Loader<String> githubSearchLoader = loaderManager.getLoader(WEATHER_LOADER);
-        if (githubSearchLoader == null) {
-            loaderManager.initLoader(WEATHER_LOADER, queryBundle, this);
-        } else {
-            loaderManager.restartLoader(WEATHER_LOADER, queryBundle, this);
-        }
     }
 
     // COMPLETED (2) Within onCreateLoader, return a new AsyncTaskLoader that looks a lot like the existing FetchWeatherTask.
@@ -215,11 +204,7 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapterOn
 
         @Override
         public String[] loadInBackground() {
-            String urlQueryString = bundle.getString(LOCATION_QUERY);
-            if (urlQueryString == null || TextUtils.isEmpty(urlQueryString)) {
-                return null;
-            }
-
+            String urlQueryString = SunshinePreferences.getPreferredWeatherLocation(mainActivityWeakReference.get());
             URL weatherRequestUrl = NetworkUtils.buildUrl(urlQueryString);
 
             try {
@@ -240,9 +225,7 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapterOn
         @Override
         protected void onStartLoading() {
             super.onStartLoading();
-            if (bundle == null) {
-                return;
-            }
+
             if (mainActivityWeakReference.get() != null) {
                 mainActivityWeakReference.get().mLoadingIndicator.setVisibility(View.VISIBLE);
             }
